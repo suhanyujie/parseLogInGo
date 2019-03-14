@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"parseLogInGo/parser"
+	"sync"
 	"time"
 )
 
@@ -13,15 +14,19 @@ type ParseLog struct {
 }
 
 func main() {
+	wg := sync.WaitGroup{}
 	file := parser.File
 	go func(file *parser.LogFile) {
+		wg.Add(1)
 		err := file.ReadLine("/home/www/go/src/parseLogInGo/log1.log")
 		if err!= nil {
 			log.Fatalln(err)
 		}
 		log.Println("文件读取完成！")
+		wg.Done()
 	}(file)
 	go func(file *parser.LogFile) {
+		wg.Add(1)
 		var tmpCon []byte
 		for {
 			select {
@@ -31,11 +36,12 @@ func main() {
 				log.Println("timeout for 1s")
 			}
 		}
+		wg.Done()
 	}(file)
 
-	time.Sleep(10*time.Second)
-
+	wg.Wait()
 	os.Exit(0)
+
 	var parser = &parser.LogParser{
 		"./log1.log",
 	}
