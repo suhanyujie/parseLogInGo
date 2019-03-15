@@ -9,6 +9,11 @@ type LogParser struct {
 	FilePath string
 }
 
+// 日志外层的数据结构
+type LogDataWrap struct {
+
+}
+
 func (this LogParser) LogReader()  {
 
 }
