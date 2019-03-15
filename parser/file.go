@@ -19,7 +19,7 @@ func init()  {
 }
 
 func (this *LogFile) ReadLine(path string) (error) {
-	file,err := os.Open(path)
+	file,err := os.OpenFile(path,os.O_RDONLY, 644)
 	if err!= nil {
 		return err
 	}

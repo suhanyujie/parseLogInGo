@@ -13,32 +13,33 @@ type ParseLog struct {
 	parser parser.Parser
 }
 
+var wg sync.WaitGroup
+
 func main() {
-	wg := sync.WaitGroup{}
 	file := parser.File
-	go func(file *parser.LogFile) {
-		wg.Add(1)
+	wg.Add(2)
+	go func(file *parser.LogFile,wg *sync.WaitGroup) {
+		log.Println("文件读取开始！")
 		err := file.ReadLine("/home/www/go/src/parseLogInGo/log1.log")
 		if err!= nil {
+			wg.Done()
 			log.Fatalln(err)
 		}
 		log.Println("文件读取完成！")
 		wg.Done()
-	}(file)
-	go func(file *parser.LogFile) {
-		wg.Add(1)
+	}(file,&wg)
+	go func(file *parser.LogFile,wg *sync.WaitGroup) {
 		var tmpCon []byte
 		for {
 			select {
 			case tmpCon = <- file.ConCh:
 				log.Println(string(tmpCon))
-			case <-time.NewTicker(time.Duration(1*time.Second)).C:
+			case <-time.NewTicker(time.Duration(2*time.Second)).C:
+				wg.Done()
 				log.Println("timeout for 1s")
 			}
 		}
-		wg.Done()
-	}(file)
-
+	}(file,&wg)
 	wg.Wait()
 	os.Exit(0)
 
