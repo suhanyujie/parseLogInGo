@@ -29,14 +29,18 @@ func main() {
 		wg.Done()
 	}(file,&wg)
 	go func(file *parser.LogFile,wg *sync.WaitGroup) {
+		// for循环中的超时，需要对timer进行重用，否则造成CPU的浪费 http://xargin.com/go-timer/
+		timer := time.NewTimer(time.Second)
+		defer timer.Stop()
 		var tmpCon []byte
 		for {
+			timer.Reset(time.Second*2)
 			select {
 			case tmpCon = <- file.ConCh:
 				log.Println(string(tmpCon))
-			case <-time.NewTicker(time.Duration(2*time.Second)).C:
+			case <-timer.C:
 				wg.Done()
-				log.Println("timeout for 1s")
+				log.Println("timeout.May be finished...")
 			}
 		}
 	}(file,&wg)
